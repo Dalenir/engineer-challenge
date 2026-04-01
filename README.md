@@ -3,8 +3,9 @@
 
 #### Подготовка
 ```shell
-docker compose -f .\deploy\dev-docker-compose.yaml build
-docker compose -f deploy\dev-docker-compose.yaml run iam alembic upgrade head
+cp ./deploy/.env.example ./deploy/.env
+docker compose -f ./deploy/dev-docker-compose.yaml build
+docker compose -f deploy/dev-docker-compose.yaml run iam alembic upgrade head
 ```
 #### Запуск
 ```shell
