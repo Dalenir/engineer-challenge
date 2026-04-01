@@ -1,0 +1,6 @@
+pytest-cov
+pytest-metadata
+pytest-clarity
+pytest-xdist
+pytest-cases
+pytest-asyncio

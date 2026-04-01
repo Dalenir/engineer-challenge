@@ -1,0 +1,66 @@
+services:
+  iam:
+    build:
+      context: ../iam
+      dockerfile: .dockerfile
+      target: test_extended
+    container_name: ttst-auth
+    command: >
+         sh -c "mkdir -p presentation/generated && 
+         python -m grpc_tools.protoc -I. --python_out=presentation/generated --grpc_python_out=presentation/generated iam.proto && 
+         PYTHONPATH=presentation/generated:$PYTHONPATH python main.py"
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+    volumes:
+      - ../iam:/app
+
+  envoy:
+    image: envoyproxy/envoy:v1.28-latest
+    container_name: iam-proxy
+    volumes:
+      - ./envoy.yaml:/etc/envoy/envoy.yaml:ro
+    ports:
+      - "8080:8080"
+      - "9901:9901"
+    depends_on:
+      - iam
+
+  postgres:
+    image: postgres:18.3-alpine
+    container_name: ttst-postgresql
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-q", "-d", "${DB_NAME}", "-U", "${DB_USERNAME}" ]
+      interval: 10s
+      retries: 5
+      timeout: 5s
+    deploy:
+      resources:
+        limits:
+          memory: 8G
+    command: "postgres -c shared_preload_libraries=pg_stat_statements -c max_connections=250 -c work_mem=64MB"
+
+  redis:
+    image: redis:8.6.2-trixie
+    container_name: ttst-redis
+    restart: always
+    ports:
+      - "6379:2769"
+    volumes:
+      - redis_data:/data
+    command: redis-server --save 20 1 --loglevel warning --port 2769
+
+volumes:
+  postgresql_data:
+  redis_data:

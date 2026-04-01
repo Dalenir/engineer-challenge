@@ -1,1 +1,39 @@
-.idea
+# PyCharm / JetBrains
+.idea/
+*.iws
+*.iml
+*.ipr
+
+# Python (Byte-compiled / optimized)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual Environments
+.venv/
+venv/
+env/
+ENV/
+bin/
+lib/
+include/
+share/
+
+# Environment variables (Secrets)
+.env
+.flaskenv
+
+# Distribution / Packaging
+dist/
+build/
+*.egg-info/
+*.egg
+nosetests.xml
+coverage.xml
+*.cover
+.pytest_cache/
+.tox/
+
+# OS files
+.DS_Store
+Thumbs.db

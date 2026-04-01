@@ -1,0 +1,44 @@
+static_resources:
+  listeners:
+  - name: listener_0
+    address:
+      socket_address: { address: 0.0.0.0, port_value: 8080 }
+    filter_chains:
+    - filters:
+      - name: envoy.filters.network.http_connection_manager
+        typed_config:
+          "@type": type.googleapis.com/envoy.extensions.filters.network.http_connection_manager.v3.HttpConnectionManager
+          stat_prefix: ingress_http
+          codec_type: AUTO
+          route_config:
+            name: local_route
+            virtual_hosts:
+            - name: iam_service
+              domains: ["*"]
+              routes:
+              - match: { prefix: "/" }
+                route: { cluster: iam_grpc_service, timeout: 0s }
+          http_filters:
+          - name: envoy.filters.http.router
+            typed_config:
+              "@type": type.googleapis.com/envoy.extensions.filters.http.router.v3.Router
+
+  clusters:
+  - name: iam_grpc_service
+    connect_timeout: 0.25s
+    type: STRICT_DNS
+    lb_policy: ROUND_ROBIN
+    http2_protocol_options: {} # КРИТИЧНО для gRPC
+    load_assignment:
+      cluster_name: iam_grpc_service
+      endpoints:
+      - lb_endpoints:
+        - endpoint:
+            address:
+              socket_address:
+                address: iam # Имя сервиса из docker-compose
+                port_value: 50051
+
+admin:
+  address:
+    socket_address: { address: 0.0.0.0, port_value: 9901 }
